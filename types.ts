@@ -133,4 +133,41 @@ export type UserType = {
   email?: string | null;
   name: string | null;
   image?: any;
+} | null;
+
+export type UserDataType = {
+  name: string;
+  image?: any;
+};
+
+export type AuthContextType = {
+  user: UserType;
+  setUser: Function;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; msg?: string }>;
+  register: (
+    name: string,
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; msg?: string }>;
+  updateUserData: (userId: string) => Promise<void>;
+};
+
+export type ResponseType = {
+  success: boolean;
+  data?: any;
+  msg?: string;
+};
+
+export type WalletType = {
+  id?: string;
+  name: string;
+  amount?: number;
+  totalIncome?: number;
+  totalExpenses?: number;
+  image: any;
+  uid?: string;
+  created?: Date;
 };
