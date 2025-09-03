@@ -15,15 +15,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserType>(null);
   const router = useRouter();
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser({
           uid: firebaseUser?.uid,
           email: firebaseUser?.email,
           name: firebaseUser?.displayName,
         });
-        updateUserData(firebaseUser.uid);
-        router.replace("/(tabs)");
+        await updateUserData(firebaseUser.uid);
+        router.replace("/(tabs)/home");
       } else {
         setUser(null);
         router.replace("/(auth)/welcome");
