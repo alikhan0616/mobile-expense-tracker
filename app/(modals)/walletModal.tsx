@@ -104,7 +104,7 @@ const WalletModal = () => {
           <View style={styles.inputContainer}>
             <Typo color={colors.neutral200}>Name</Typo>
             <Input
-              placeholder="Name"
+              placeholder="Slary"
               value={wallet.name}
               onChangeText={(value) => {
                 setWallet({ ...wallet, name: value });
