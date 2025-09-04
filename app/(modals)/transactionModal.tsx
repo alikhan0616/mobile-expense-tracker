@@ -9,15 +9,17 @@ import { expenseCategories, transactionTypes } from "@/constants/data";
 import { colors, radius, spacingX, spacingY } from "@/constants/theme";
 import { useAuth } from "@/contexts/authContext";
 import useFetchData from "@/hooks/useFetchData";
-import { createOrUpdateTransaction } from "@/services/transactionService";
-import { deleteWallet } from "@/services/walletService";
+import {
+  createOrUpdateTransaction,
+  deleteTransaction,
+} from "@/services/transactionService";
 import { TransactionType, WalletType } from "@/types";
 import { scale, verticalScale } from "@/utils/styling";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { orderBy, where } from "firebase/firestore";
 import * as Icons from "phosphor-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Platform,
@@ -58,23 +60,38 @@ const TransactionModal = () => {
     setShowDatePicker(Platform.OS === "ios" ? true : false);
   };
 
-  const oldTransaction: { name: string; image: string; id: string } =
-    useLocalSearchParams();
+  type paramType = {
+    id: string;
+    type: string;
+    amount: string;
+    description?: string;
+    date: string;
+    category?: string;
+    image?: any;
+    uid?: string;
+    walletId: string;
+  };
+  const oldTransaction: paramType = useLocalSearchParams();
 
-  //   useEffect(() => {
-  //     if (oldTransaction?.id) {
-  //       setTransaction({
-  //         name: oldTransaction?.name,
-  //         image: oldTransaction?.image,
-  //       });
-  //     }
-  //   }, []);
+  useEffect(() => {
+    if (oldTransaction?.id) {
+      setTransaction({
+        type: oldTransaction?.type,
+        category: oldTransaction?.category || "",
+        amount: Number(oldTransaction.amount),
+        description: oldTransaction.description || "",
+        image: oldTransaction?.image,
+        date: new Date(oldTransaction.date),
+        walletId: oldTransaction.walletId,
+      });
+    }
+  }, []);
 
   const onSubmit = async () => {
     const { type, amount, description, category, date, walletId, image } =
       transaction;
 
-    if (!walletId || !date || !amount || (type == "expense" && !category)) {
+    if (!walletId || !date || !amount || (type === "expense" && !category)) {
       Alert.alert("Transaction", "Please fill all the fields!");
       return;
     }
@@ -86,9 +103,11 @@ const TransactionModal = () => {
       description,
       category,
       walletId,
-      image,
+      image: image ? image : null,
       uid: user?.uid,
     };
+
+    if (oldTransaction?.id) transactionData.id = oldTransaction.id;
     setLoading(true);
     const res = await createOrUpdateTransaction(transactionData);
     setLoading(false);
@@ -104,19 +123,22 @@ const TransactionModal = () => {
       return;
     }
     setLoading(true);
-    const res = await deleteWallet(oldTransaction?.id);
+    const res = await deleteTransaction(
+      oldTransaction?.id,
+      oldTransaction?.walletId
+    );
     setLoading(false);
     if (res.success) {
       router.back();
     } else {
-      Alert.alert("Wallet", res.msg);
+      Alert.alert("Transaction", res.msg);
     }
   };
 
   const showDeleteAlert = () => {
     Alert.alert(
       "Confirm",
-      "Are you sure you want to do this? \nThis action will remove all the transactions related to this wallet",
+      "Are you sure you want to delete this transaction?",
       [
         {
           text: "Cancel",
